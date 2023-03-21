@@ -50,6 +50,35 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/signin", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    res.status(400).send({ message: "Fill the data" });
+  }
+
+  try {
+    const data = await User.findOne({ email });
+    !data && res.status(422).send({ message: "Invalid Details" });
+    const isLogin = await bcryptjs.compare(password, data.password);
+    if (isLogin) {
+      const token = await data.createToken();
+      console.log(token);
+      res.cookie("jwtdata", token, {
+        expires: new Date(Date.now() + 60 * 60 * 2 * 1000),
+        httpOnly: true,
+      });
+      res.status(200).json({ message: "Signin successfully" });
+    } else {
+      res.status(422).send({ message: "Invalid Details" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
+  }
+});
+
 router.post("/registration", async (req, res) => {
   const { ngo_name, email, head_name, address, activity, password, cpassword } =
     req.body;
