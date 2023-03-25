@@ -21,12 +21,19 @@ const regSchema = mongoose.Schema({
       }
     },
   },
+  contact_number: {
+    type: Number,
+    required: true,
+  },
   head_name: {
     type: String,
     required: true,
     trim: true,
     minlength: 2,
     maxlength: 20,
+  },
+  document: {
+    type: String,
   },
   address: {
     type: String,
@@ -41,10 +48,11 @@ const regSchema = mongoose.Schema({
     required: true,
     // maxlength: 10,
   },
-  cpassword: {
+  otp: {
     type: String,
-    required: true,
-    // maxlength: 10,
+  },
+  isVerified: {
+    type: Boolean,
   },
   tokens: [
     {
@@ -61,7 +69,6 @@ regSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     console.log("bcrypt");
     this.password = await bcrypt.hash(this.password, 12);
-    this.cpassword = await bcrypt.hash(this.cpassword, 12);
   }
   next();
 });

@@ -2,10 +2,14 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const multer = require("multer");
+const { v4: uuidv4 } = require("uuid");
 
 const Register = require("../models/regSchema");
 const Fraud = require("../models/fraudSchema");
 const Requests = require("../models/reqSchema");
+const { sendmail } = require("../utils/sendmail");
 
 // router.get("/", (req, res) => {
 //   res.send("auth.js home page");
@@ -79,9 +83,35 @@ router.post("/signin", async (req, res) => {
   }
 });
 
-router.post("/registration", async (req, res) => {
-  const { ngo_name, email, head_name, address, activity, password, cpassword } =
-    req.body;
+const uploadPath = path.join(__dirname, "../upload");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, next) {
+    next(null, uploadPath);
+  },
+  filename: function (req, file, next) {
+    next(null, uuidv4() + "-" + Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
+
+function randomNumberForOtp(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+router.post("/registration", upload.single("document"), async (req, res) => {
+  const {
+    ngo_name,
+    email,
+    head_name,
+    address,
+    activity,
+    password,
+    contact_number,
+  } = req.body;
+
+  const { filename = "" } = req.file;
 
   if (
     !ngo_name ||
@@ -90,7 +120,7 @@ router.post("/registration", async (req, res) => {
     !address ||
     !activity ||
     !password ||
-    !cpassword
+    !contact_number
   ) {
     return res.status(422).json({ error: "pls filled all the field" });
   }
@@ -100,9 +130,9 @@ router.post("/registration", async (req, res) => {
     // console.log(userExists);
     if (userExists) {
       return res.status(422).json({ error: "Email Already registered" });
-    } else if (password != cpassword) {
-      res.status(413).json({ error: "Filled Not Matched With ur Password." });
     } else {
+      const otp = randomNumberForOtp(1000, 9999);
+      console.log({ otp });
       const register = new Register({
         ngo_name,
         email,
@@ -110,19 +140,47 @@ router.post("/registration", async (req, res) => {
         address,
         activity,
         password,
-        cpassword,
+        contact_number,
+        document: filename,
+        otp,
       });
 
-      console.log("hello");
       await register.save();
 
-      // console.log(userReg);
+      const sendmailRes = await sendmail({
+        email,
+        textMessage: `Your Otp ${otp}`,
+      });
 
       res.status(201).json({ message: "user registered Successfully" });
       console.log(req.body);
     }
   } catch (err) {
     console.log(err);
+  }
+});
+
+router.post("/verify-otp", async (req, res) => {
+  const { email, vOtp } = req.body;
+  console.log({ email, vOtp, body: req.body });
+  const userLogin = await Register.findOne({ email: email });
+  console.log({ userLogin });
+  if (userLogin) {
+    const otp = userLogin.otp;
+    if (vOtp.toString() === otp.toString()) {
+      // isVerified
+      console.log("same");
+      const resUser = await Register.updateOne(
+        { _id: userLogin.id },
+        { $set: { isVerified: true } }
+      );
+      console.log({ resUser });
+      res
+        .status(200)
+        .send({ message: "User Verified Successfully", success: true });
+    } else {
+      res.status(200).send({ message: "Otp invalid" });
+    }
   }
 });
 
