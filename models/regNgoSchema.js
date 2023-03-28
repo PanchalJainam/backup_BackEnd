@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 
-const regSchema = mongoose.Schema({
+const regNgoSchema = mongoose.Schema({
   ngo_name: {
     type: String,
     required: true,
@@ -64,7 +64,7 @@ const regSchema = mongoose.Schema({
   ],
 });
 
-regSchema.pre("save", async function (next) {
+regNgoSchema.pre("save", async function (next) {
   console.log("inside");
   if (this.isModified("password")) {
     console.log("bcrypt");
@@ -73,7 +73,7 @@ regSchema.pre("save", async function (next) {
   next();
 });
 
-regSchema.methods.generateAuthToken = async function () {
+regNgoSchema.methods.generateAuthToken = async function () {
   try {
     let token = jwt.sign({ _id: this._id }, "hello");
     this.tokens = this.tokens.concat({ token: token });
@@ -83,5 +83,5 @@ regSchema.methods.generateAuthToken = async function () {
     console.log(err);
   }
 };
-const Register = mongoose.model("REGUSER", regSchema);
+const Register = mongoose.model("REGNGO", regNgoSchema);
 module.exports = Register;
