@@ -52,14 +52,17 @@ app.get("/regngos/:id", async (req, res) => {
 
 app.put("/regngos/:id", async (req, res) => {
   try {
+    console.log("hello");
     const { id } = req.params.id;
     const { ngo_name } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
+    const updatedUser = await Register.findByIdAndUpdate(
       id,
       { $set: { ngo_name } },
       { new: true }
     );
+
+    console.log({ updatedUser });
 
     res.json(updatedUser);
     console.log("User Name is: " + updatedUser);
