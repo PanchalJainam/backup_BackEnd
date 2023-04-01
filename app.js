@@ -53,18 +53,20 @@ app.get("/regngos/:id", async (req, res) => {
 app.put("/regngos/:id", async (req, res) => {
   try {
     console.log("hello");
-    const { id } = req.params.id;
-    const { ngo_name } = req.body;
+    const { _id } = req.params.id;
+    const { ngo_name, activity } = req.body;
 
-    const updatedUser = await Register.findByIdAndUpdate(
-      id,
-      { $set: { ngo_name } },
+    const updatedUser = await Register.updateOne(
+      _id,
+      { $set: { ngo_name, activity } },
       { new: true }
     );
+    console.log({ ngo_name });
 
     console.log({ updatedUser });
 
     res.json(updatedUser);
+    await updatedUser.save();
     console.log("User Name is: " + updatedUser);
   } catch (err) {
     res.status(500).json({ message: err.message });

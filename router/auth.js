@@ -7,6 +7,7 @@ const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 
 const Register = require("../models/regNgoSchema");
+const Volunteers = require("../models/volunteerSchema");
 const RegisterUser = require("../models/regUserSchema");
 const Fraud = require("../models/fraudSchema");
 const Requests = require("../models/reqSchema");
@@ -25,15 +26,27 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Please Filled the data" });
     }
 
-    const userLogin = await Register.findOne({ email: email });
+    const ngoLogin = await Register.findOne({ email: email });
+    const userLogin = await RegisterUser.findOne({ email: email });
 
-    console.log(userLogin);
-    if (userLogin) {
-      // res.status(413).json({ error: "Email Already Exists" });
-      // alert("User Not Found");
+    // console.log(userLogin);
+    if (ngoLogin) {
+      const pwd = await bcrypt.compare(password, ngoLogin.password);
+
+      if (!pwd) {
+        res.status(429).json({ error: "Password Error" });
+      } else {
+        token = await ngoLogin.generateAuthToken();
+        console.log("token is : " + token);
+
+        res.cookie("jwt", token, {
+          expires: new Date(Date.now() + 2546500045400),
+          httpOnly: true,
+        });
+        res.status(201).json({ meassage: "Done Successfully" });
+      }
+    } else if (userLogin) {
       const pwd = await bcrypt.compare(password, userLogin.password);
-
-      // console.log("Pwd is : " + pwd);
 
       if (!pwd) {
         res.status(429).json({ error: "Password Error" });
@@ -48,7 +61,7 @@ router.post("/login", async (req, res) => {
         res.status(201).json({ meassage: "Done Successfully" });
       }
     } else {
-      res.status(413).json({ error: "User Not Registered" });
+      res.status(413).json({ error: "You are Not Registered" });
     }
   } catch (err) {
     console.log(err);
@@ -281,6 +294,52 @@ router.post("/fraud", async (req, res) => {
 
     res.status(201).json({ message: "Fraud Ngo Details Send Successfully" });
     console.log(req.body);
+  } catch (e) {
+    res.send(e);
+  }
+});
+
+/****************************** VOLUNTEER DTABASE CODE **********************************/
+
+router.post("/volunteer", async (req, res) => {
+  const {
+    fname,
+    lname,
+    email,
+    address,
+    activity,
+    gender,
+    occupation,
+    contact_number,
+  } = req.body;
+  if (
+    !email ||
+    !fname ||
+    !lname ||
+    !address ||
+    !activity ||
+    !gender ||
+    !occupation ||
+    !contact_number
+  ) {
+    return res.status(422).json({ error: "pls filled all the field" });
+  }
+  try {
+    const volunteer = new Volunteers({
+      fname,
+      lname,
+      email,
+      address,
+      activity,
+      gender,
+      occupation,
+      contact_number,
+    });
+    console.log(req.body);
+    // console.log(dateExist);
+    await volunteer.save();
+
+    res.status(201).json({ message: "Send Successfully" });
   } catch (e) {
     res.send(e);
   }
