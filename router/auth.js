@@ -17,6 +17,26 @@ const { sendmail } = require("../utils/sendmail");
 //   res.send("auth.js home page");
 // });
 
+const verifyToken = (token) => {
+  const data = jwt.verify(token, "hello");
+  return data;
+};
+
+router.post("/token-data", async (req, res) => {
+  const { token } = req.body;
+  const user_id = verifyToken(token);
+  const ngoLogin = await Register.findOne({ _id: user_id });
+  const userLogin = await RegisterUser.findOne({ _id: user_id });
+  console.log({ ngoLogin, userLogin });
+  if (ngoLogin) {
+    res.status(200).send({ userData: ngoLogin });
+  } else if (userLogin) {
+    res.status(200).send({ userData: userLogin });
+  } else {
+    res.status(400).send({ userData: null });
+  }
+});
+
 router.post("/login", async (req, res) => {
   try {
     let token;
@@ -39,11 +59,13 @@ router.post("/login", async (req, res) => {
         token = await ngoLogin.generateAuthToken();
         console.log("token is : " + token);
 
-        res.cookie("jwt", token, {
-          expires: new Date(Date.now() + 2546500045400),
-          httpOnly: true,
-        });
-        res.status(201).json({ meassage: "Done Successfully" });
+        // res.cookie("jwt", token, {
+        //   expires: new Date(Date.now() + 2546500045400),
+        //   httpOnly: true,
+        // });
+        res
+          .status(201)
+          .json({ meassage: "Done Successfully", token, userData: ngoLogin });
       }
     } else if (userLogin) {
       const pwd = await bcrypt.compare(password, userLogin.password);
@@ -58,7 +80,9 @@ router.post("/login", async (req, res) => {
           expires: new Date(Date.now() + 2546500045400),
           httpOnly: true,
         });
-        res.status(201).json({ meassage: "Done Successfully" });
+        res
+          .status(201)
+          .json({ meassage: "Done Successfully", token, userData: userLogin });
       }
     } else {
       res.status(413).json({ error: "You are Not Registered" });
@@ -346,24 +370,40 @@ router.post("/volunteer", async (req, res) => {
 });
 
 router.post("/request", async (req, res) => {
-  const { email, message, contact } = req.body;
-  if (!email || !contact || !message) {
+  const { user_name, email, message, contact, user_id, ngo_id } = req.body;
+  if (!user_name || !email || !contact || !message) {
     return res.status(422).json({ error: "pls filled all the field" });
   }
   try {
     const request = new Requests({
+      user_name,
       email,
       contact,
       message,
+      user_id,
+      ngo_id,
     });
-    console.log(dateExist);
-    await request.save();
 
-    res.status(201).json({ message: "Send Successfully" });
+    const d = await request.save();
+
     console.log(req.body);
+    res.status(201).json({ message: "Send Successfully" });
   } catch (e) {
-    res.send(e);
+    console.log({ e });
   }
 });
+
+router.all("/request-all/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log({ id });
+  const records = await Requests.find({ ngo_id: id });
+  res.send(records);
+  console.log(records);
+});
+
+//route name request-alll
+//_id
+//const records = await Model.find({ 'ngo_id': _id });
+//records
 
 module.exports = router;

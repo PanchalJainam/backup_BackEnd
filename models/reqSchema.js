@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 
 const reqSchema = mongoose.Schema({
+  user_name: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
@@ -14,20 +18,20 @@ const reqSchema = mongoose.Schema({
   },
   contact: {
     tyep: Number,
-    // required: true,
-    // max: 10,
   },
   message: {
     type: String,
     required: true,
   },
+  user_id: {
+    type: String,
+    required: true,
+  },
+  ngo_id: {
+    type: String,
+    required: true,
+  },
 });
-
-// reqSchema.pre("save", async function (next) {
-//   const dateExist = await Requests.insertOne({ timestamp: new Date() });
-//   console.log(dateExist);
-//   next();
-// });
 
 const Requests = mongoose.model("Request", reqSchema);
 module.exports = Requests;
