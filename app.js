@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const Register = require("./models/regNgoSchema");
+const RegisterUser = require("./models/regUserSchema");
 
 // const validator = require("validator");
 
@@ -26,13 +27,36 @@ app.get("/", (req, res) => {
   res.send("home page");
 });
 
-/********************* Ngo API ***************************/ 
+/********************* Ngo API ***************************/
 app.get("/regngos", async (req, res) => {
   try {
     const ngoData = await Register.find();
     res.send(ngoData);
   } catch (e) {
     res.send(e);
+  }
+});
+
+app.get("/reguser", async (req, res) => {
+  try {
+    const userData = await RegisterUser.find();
+    res.send(userData);
+  } catch (e) {
+    res.send(e);
+  }
+});
+
+/********************* User API ***************************/
+app.get("/reguser/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+
+    const userNgo = await RegisterUser.findById({ _id: id });
+
+    res.status(201).json(userNgo);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

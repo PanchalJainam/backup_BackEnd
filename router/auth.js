@@ -10,7 +10,9 @@ const Register = require("../models/regNgoSchema");
 const Volunteers = require("../models/volunteerSchema");
 const RegisterUser = require("../models/regUserSchema");
 const Fraud = require("../models/fraudSchema");
+const Feedback = require("../models/feedbackSchema");
 const Requests = require("../models/reqSchema");
+const Report = require("../models/reportSchema");
 const { sendmail } = require("../utils/sendmail");
 const { Console } = require("console");
 
@@ -78,10 +80,10 @@ router.post("/login", async (req, res) => {
         token = await userLogin.generateAuthToken();
         console.log("token is : " + token);
 
-        res.cookie("jwt", token, {
-          expires: new Date(Date.now() + 2546500045400),
-          httpOnly: true,
-        });
+        // res.cookie("jwt", token, {
+        //   expires: new Date(Date.now() + 2546500045400),
+        //   httpOnly: true,
+        // });
         res
           .status(201)
           .json({ meassage: "Done Successfully", token, userData: userLogin });
@@ -297,20 +299,25 @@ router.post("/user-registration", async (req, res) => {
 });
 
 // **************** ACCEPT REQUEST API ****************
-// router.post("/accept-request/:status", async (req, res) => {
-//   const { status } = req.params;
-//   console.log(status);
-//   const acceptedReq = await Requests.findOne({ email: email });
-//   if (acceptedReq) {
-//     const sendmailRes = await sendmail({
-//       email,
-//       textMessage: `Your Request Has Been ${status}`,
-//     });
-//     res.send("Mail Send Successfully");
-//   } else {
-//     console.log("User Are Not Found");
-//   }
-// });
+router.put("/request/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    console.log({ status });
+    res.send(id);
+    const acceptedReq = await Requests.findByIdAndUpdate(
+      { id },
+      { $set: { status: "accepted" } },
+      { new: true }
+    );
+    console.log(req.body);
+    console.log({ acceptedReq });
+    res.send("Successfully Updated");
+    await acceptedReq.save();
+  } catch (e) {
+    console.log(e);
+  }
+});
 
 // router.post("/decline-request/:status", async (req, res) => {
 //   const { status } = req.params;
@@ -333,6 +340,25 @@ router.get("/logout", (req, res) => {
   res.status(200).send("logout Page");
 });
 
+router.post("/feedback", async (req, res) => {
+  const { email, message } = req.body;
+
+  if (!email || !message) {
+    return res.status(422).json({ error: "pls filled all the field" });
+  }
+  try {
+    const feedback = new Feedback({
+      email,
+      message,
+    });
+    await feedback.save();
+
+    res.status(201).json({ message: "Message Send Successfully" });
+    console.log(req.body);
+  } catch (e) {
+    res.send(e);
+  }
+});
 router.post("/fraud", async (req, res) => {
   const { email, address, activity, message } = req.body;
 
@@ -340,7 +366,6 @@ router.post("/fraud", async (req, res) => {
     return res.status(422).json({ error: "pls filled all the field" });
   }
   try {
-    // const fraudExist = await Fraud.findOne({ email: email });
     const fraud = new Fraud({
       email,
       address,
@@ -350,6 +375,29 @@ router.post("/fraud", async (req, res) => {
     await fraud.save();
 
     res.status(201).json({ message: "Fraud Ngo Details Send Successfully" });
+    console.log(req.body);
+  } catch (e) {
+    res.send(e);
+  }
+});
+router.post("/report", async (req, res) => {
+  const { email, address, activity, message, user_id, ngo_id } = req.body;
+
+  if (!email || !address || !activity || !message) {
+    return res.status(422).json({ error: "pls filled all the field" });
+  }
+  try {
+    const report = new Report({
+      email,
+      address,
+      activity,
+      message,
+      user_id,
+      ngo_id,
+    });
+    await report.save();
+
+    res.status(201).json({ message: "Reprt to Ngo Send Successfully" });
     console.log(req.body);
   } catch (e) {
     res.send(e);
@@ -429,7 +477,7 @@ router.post("/request", async (req, res) => {
 router.all("/request-all/:id", async (req, res) => {
   const { id } = req.params;
   console.log({ id });
-  const records = await Requests.find({ ngo_id: id });
+  const records = await Requests.find({ ngo_id: id, status: "pending" });
   res.send(records);
   console.log(records);
 });
