@@ -9,7 +9,6 @@ const reqSchema = mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
     validate(value) {
       if (!validator.isEmail(value)) {
         throw new Error("Email is Invalid");
@@ -30,6 +29,10 @@ const reqSchema = mongoose.Schema({
   ngo_id: {
     type: String,
     required: true,
+  },
+  status: {
+    type: String,
+    default: "pending",
   },
 });
 

@@ -12,6 +12,7 @@ const RegisterUser = require("../models/regUserSchema");
 const Fraud = require("../models/fraudSchema");
 const Requests = require("../models/reqSchema");
 const { sendmail } = require("../utils/sendmail");
+const { Console } = require("console");
 
 // router.get("/", (req, res) => {
 //   res.send("auth.js home page");
@@ -37,6 +38,7 @@ router.post("/token-data", async (req, res) => {
   }
 });
 
+// ******************* LOG-IN ROUTER ****************************
 router.post("/login", async (req, res) => {
   try {
     let token;
@@ -142,6 +144,49 @@ function randomNumberForOtp(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
+/************* VETIFY OTP Code ***************/
+
+router.post("/verify-otp", async (req, res) => {
+  const { email, vOtp } = req.body;
+  console.log({ email, vOtp, body: req.body });
+  const ngoLogin = await Register.findOne({ email: email });
+  const userLogin = await RegisterUser.findOne({ email: email });
+  console.log({ ngoLogin, userLogin });
+  if (userLogin) {
+    const otp = userLogin.otp;
+    if (vOtp.toString() === otp.toString()) {
+      // isVerified
+      console.log("same");
+      const resUser = await RegisterUser.updateOne(
+        { _id: userLogin.id },
+        { $set: { isVerified: true } }
+      );
+      console.log({ resUser });
+      res
+        .status(200)
+        .send({ message: "User Verified Successfully", success: true });
+    } else {
+      res.status(200).send({ message: "Otp invalid" });
+    }
+  } else if (ngoLogin) {
+    const otp = ngoLogin.otp;
+    if (vOtp.toString() === otp.toString()) {
+      // isVerified
+      console.log("same");
+      const resUser = await Register.updateOne(
+        { _id: ngoLogin.id },
+        { $set: { isVerified: true } }
+      );
+      console.log({ resUser });
+      res
+        .status(200)
+        .send({ message: "User Verified Successfully", success: true });
+    } else {
+      res.status(200).send({ message: "Otp invalid" });
+    }
+  }
+});
+
 /************* NGO REGISTRATION Code ***************/
 router.post(
   "/registration",
@@ -208,49 +253,6 @@ router.post(
   }
 );
 
-/************* VETIFY OTP Code ***************/
-
-router.post("/verify-otp", async (req, res) => {
-  const { email, vOtp } = req.body;
-  console.log({ email, vOtp, body: req.body });
-  const ngoLogin = await Register.findOne({ email: email });
-  const userLogin = await RegisterUser.findOne({ email: email });
-  console.log({ ngoLogin, userLogin });
-  if (userLogin) {
-    const otp = userLogin.otp;
-    if (vOtp.toString() === otp.toString()) {
-      // isVerified
-      console.log("same");
-      const resUser = await RegisterUser.updateOne(
-        { _id: userLogin.id },
-        { $set: { isVerified: true } }
-      );
-      console.log({ resUser });
-      res
-        .status(200)
-        .send({ message: "User Verified Successfully", success: true });
-    } else {
-      res.status(200).send({ message: "Otp invalid" });
-    }
-  } else if (ngoLogin) {
-    const otp = ngoLogin.otp;
-    if (vOtp.toString() === otp.toString()) {
-      // isVerified
-      console.log("same");
-      const resUser = await Register.updateOne(
-        { _id: ngoLogin.id },
-        { $set: { isVerified: true } }
-      );
-      console.log({ resUser });
-      res
-        .status(200)
-        .send({ message: "User Verified Successfully", success: true });
-    } else {
-      res.status(200).send({ message: "Otp invalid" });
-    }
-  }
-});
-
 /************* USER REGISTRATION Code ***************/
 router.post("/user-registration", async (req, res) => {
   const { user_name, email, password, contact_number } = req.body;
@@ -294,6 +296,37 @@ router.post("/user-registration", async (req, res) => {
   }
 });
 
+// **************** ACCEPT REQUEST API ****************
+// router.post("/accept-request/:status", async (req, res) => {
+//   const { status } = req.params;
+//   console.log(status);
+//   const acceptedReq = await Requests.findOne({ email: email });
+//   if (acceptedReq) {
+//     const sendmailRes = await sendmail({
+//       email,
+//       textMessage: `Your Request Has Been ${status}`,
+//     });
+//     res.send("Mail Send Successfully");
+//   } else {
+//     console.log("User Are Not Found");
+//   }
+// });
+
+// router.post("/decline-request/:status", async (req, res) => {
+//   const { status } = req.params;
+//   console.log(status);
+//   const acceptedReq = await Requests.findOne({ email: email });
+//   if (acceptedReq) {
+//     const sendmailRes = await sendmail({
+//       email,
+//       textMessage: `Your Request Has Been ${status}`,
+//     });
+//     res.send("Mail Send Successfully");
+//   } else {
+//     console.log("User Are Not Found");
+//   }
+// });
+
 router.get("/logout", (req, res) => {
   console.log("this is logout page");
   res.cookie("jwt", { path: "/" });
@@ -323,7 +356,7 @@ router.post("/fraud", async (req, res) => {
   }
 });
 
-/****************************** VOLUNTEER DTABASE CODE **********************************/
+/*************** VOLUNTEER DTABASE CODE ********************/
 
 router.post("/volunteer", async (req, res) => {
   const {

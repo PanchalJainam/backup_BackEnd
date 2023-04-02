@@ -26,6 +26,7 @@ app.get("/", (req, res) => {
   res.send("home page");
 });
 
+/********************* Ngo API ***************************/ 
 app.get("/regngos", async (req, res) => {
   try {
     const ngoData = await Register.find();
