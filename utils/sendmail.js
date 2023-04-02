@@ -6,9 +6,9 @@ const fs = require("fs");
 const EMAIL_CLIENT_ID =
   "229478837756-rquo6srapkja34ffar6kan5r3fncr9ta.apps.googleusercontent.com";
 const EMAIL_CLIENT_SECRET = "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";
-const EMAIL_REDIREACT_URL = "https://developers.google.com/oauthplayground.";
+const EMAIL_REDIREACT_URL = "https://developers.google.com/oauthplayground";
 const EMAIL_REFRESH_TOKEN =
-  "1//044AN_k-p8Ni8CgYIARAAGAQSNwF-L9Ir1I8j9w-CL5zVD8tIXnNnpsBoB-jILT8Bnwu1E_NvFuz-YeWyVZfVUcWdcAhkobIySK8";
+  "1//04lGQc3HRwXveCgYIARAAGAQSNwF-L9IrCzLdOnlgwkwDumeOIKbnNZZ_7ReQzqvmaPZ8ogg6IGAO3SDcbu35sCuk22WvsWMkihA";
 const EMAIL = "mevadajinil@gmail.com";
 
 const sendmail = async ({
