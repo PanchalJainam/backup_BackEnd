@@ -302,18 +302,19 @@ router.post("/user-registration", async (req, res) => {
 router.put("/request/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    console.log({ status });
-    res.send(id);
+    const { email } = req.body;
     const acceptedReq = await Requests.findByIdAndUpdate(
-      { id },
+      { _id: id },
       { $set: { status: "accepted" } },
       { new: true }
     );
-    console.log(req.body);
-    console.log({ acceptedReq });
-    res.send("Successfully Updated");
     await acceptedReq.save();
+    const sendmailRes = await sendmail({
+      email: email,
+      textMessage: "status accepted",
+    });
+    console.log({ sendmailRes });
+    res.send("Successfully Updated");
   } catch (e) {
     console.log(e);
   }
