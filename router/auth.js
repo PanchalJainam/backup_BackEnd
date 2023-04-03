@@ -303,7 +303,8 @@ router.put("/request-accept/:id", async (req, res) => {
   try {
     const { id } = req.params;
     // const { req_email } = await Requests.find(_id);
-    // const { email } = req.body;
+    const { email } = req.body;
+    console.log({ email, id });
 
     const acceptedReq = await Requests.findByIdAndUpdate(
       { _id: id },
