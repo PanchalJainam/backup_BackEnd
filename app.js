@@ -6,6 +6,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const Register = require("./models/regNgoSchema");
 const RegisterUser = require("./models/regUserSchema");
+const Volunteers = require("./models/volunteerSchema");
 
 // const validator = require("validator");
 
@@ -101,6 +102,15 @@ app.delete("/regngos/:id", (req, res) => {
   // delete user from database using userId
 
   res.sendStatus(200);
+});
+
+app.get("/volunteer", async (req, res) => {
+  try {
+    const volData = await Volunteers.find();
+    res.send(volData);
+  } catch (e) {
+    res.send(e);
+  }
 });
 
 app.listen(5000, () => {
