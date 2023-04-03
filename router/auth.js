@@ -299,10 +299,12 @@ router.post("/user-registration", async (req, res) => {
 });
 
 // **************** ACCEPT REQUEST API ****************
-router.put("/request/:id", async (req, res) => {
+router.put("/request-accept/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { email } = req.body;
+    // const { req_email } = await Requests.find(_id);
+    // const { email } = req.body;
+
     const acceptedReq = await Requests.findByIdAndUpdate(
       { _id: id },
       { $set: { status: "accepted" } },
@@ -319,6 +321,34 @@ router.put("/request/:id", async (req, res) => {
     console.log(e);
   }
 });
+
+// router.put("/request-rejected/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { email } = req.body;
+//     const acceptedReq = await Requests.findByIdAndUpdate(
+//       { _id: id },
+//       { $set: { status: "rejected" } },
+//       { new: true }
+//     );
+//     const sendReq = await Requests.findOne({ email: email });
+//     if (sendReq) {
+//       const sendmailRes = await sendmail({
+//         email,
+//         textMessage: `Your Request Has Been Rejected`,
+//       });
+//     }
+//     console.log({ sendmailRes });
+//     await acceptedReq.save();
+//     // const sendmailRes = await sendmail({
+//     //   email: email,
+//     //   textMessage: "status accepted",
+//     // });
+//     res.send("Successfully Updated");
+//   } catch (e) {
+//     console.log(e);
+//   }
+// });
 
 // router.post("/decline-request/:status", async (req, res) => {
 //   const { status } = req.params;
@@ -342,22 +372,24 @@ router.get("/logout", (req, res) => {
 });
 
 router.post("/feedback", async (req, res) => {
-  const { email, message } = req.body;
+  const { email: emailfeedback, message, rating } = req.body;
 
-  if (!email || !message) {
+  if (!emailfeedback || !message) {
     return res.status(422).json({ error: "pls filled all the field" });
   }
   try {
     const feedback = new Feedback({
-      email,
+      emailfeedback,
       message,
+      rating,
     });
+    console.log(rating);
     await feedback.save();
 
     res.status(201).json({ message: "Message Send Successfully" });
     console.log(req.body);
   } catch (e) {
-    res.send(e);
+    console.log(e);
   }
 });
 router.post("/fraud", async (req, res) => {
@@ -378,7 +410,7 @@ router.post("/fraud", async (req, res) => {
     res.status(201).json({ message: "Fraud Ngo Details Send Successfully" });
     console.log(req.body);
   } catch (e) {
-    res.send(e);
+    console.log(e);
   }
 });
 router.post("/report", async (req, res) => {
@@ -452,6 +484,7 @@ router.post("/volunteer", async (req, res) => {
 });
 
 router.post("/request", async (req, res) => {
+  // const { ngo_id } = req.params;
   const { user_name, email, message, contact, user_id, ngo_id } = req.body;
   if (!user_name || !email || !contact || !message) {
     return res.status(422).json({ error: "pls filled all the field" });

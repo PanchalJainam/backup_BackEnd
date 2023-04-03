@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
+// const takeData = () => {
+//   let dateVal = new Date();
+//   let month = dateVal.getMonth();
+//   let year = dateVal.getFullYear();
+//   let date = dateVal.getDate();
+//   return `${date}/${month}/${year}`;
+// };
+
 const reqSchema = mongoose.Schema({
   user_name: {
     type: String,
@@ -33,6 +41,10 @@ const reqSchema = mongoose.Schema({
   status: {
     type: String,
     default: "pending",
+  },
+  time: {
+    type: Date,
+    default: new Date(),
   },
 });
 

@@ -89,12 +89,9 @@ app.put("/regngos/:id", async (req, res) => {
     console.log({ ngo_name });
 
     console.log({ updatedUser });
-
-    res.json(updatedUser);
-    await updatedUser.save();
-    console.log("User Name is: " + updatedUser);
+    res.status(200).send("Data Updated Successfully");
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log(err);
   }
 });
 
