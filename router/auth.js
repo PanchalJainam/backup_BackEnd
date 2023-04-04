@@ -345,13 +345,14 @@ router.get("/logout", (req, res) => {
 });
 
 router.post("/feedback", async (req, res) => {
-  const { email: emailfeedback, message, rating } = req.body;
+  const { name, email: emailfeedback, message, rating } = req.body;
 
-  if (!emailfeedback || !message) {
+  if (!name || !emailfeedback || !message) {
     return res.status(422).json({ error: "pls filled all the field" });
   }
   try {
     const feedback = new Feedback({
+      name,
       emailfeedback,
       message,
       rating,
