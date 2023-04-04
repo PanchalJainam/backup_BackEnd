@@ -63,10 +63,6 @@ router.post("/login", async (req, res) => {
         token = await ngoLogin.generateAuthToken();
         console.log("token is : " + token);
 
-        // res.cookie("jwt", token, {
-        //   expires: new Date(Date.now() + 2546500045400),
-        //   httpOnly: true,
-        // });
         res
           .status(201)
           .json({ meassage: "Done Successfully", token, userData: ngoLogin });
@@ -79,11 +75,6 @@ router.post("/login", async (req, res) => {
       } else {
         token = await userLogin.generateAuthToken();
         console.log("token is : " + token);
-
-        // res.cookie("jwt", token, {
-        //   expires: new Date(Date.now() + 2546500045400),
-        //   httpOnly: true,
-        // });
         res
           .status(201)
           .json({ meassage: "Done Successfully", token, userData: userLogin });
@@ -314,7 +305,7 @@ router.put("/request-accept/:id", async (req, res) => {
     await acceptedReq.save();
     const sendmailRes = await sendmail({
       email: email,
-      textMessage: "status accepted",
+      textMessage: "Your Request Has Been Accepted :-)",
     });
     console.log({ sendmailRes });
     res.send("Successfully Updated");
@@ -323,48 +314,29 @@ router.put("/request-accept/:id", async (req, res) => {
   }
 });
 
-// router.put("/request-rejected/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { email } = req.body;
-//     const acceptedReq = await Requests.findByIdAndUpdate(
-//       { _id: id },
-//       { $set: { status: "rejected" } },
-//       { new: true }
-//     );
-//     const sendReq = await Requests.findOne({ email: email });
-//     if (sendReq) {
-//       const sendmailRes = await sendmail({
-//         email,
-//         textMessage: `Your Request Has Been Rejected`,
-//       });
-//     }
-//     console.log({ sendmailRes });
-//     await acceptedReq.save();
-//     // const sendmailRes = await sendmail({
-//     //   email: email,
-//     //   textMessage: "status accepted",
-//     // });
-//     res.send("Successfully Updated");
-//   } catch (e) {
-//     console.log(e);
-//   }
-// });
+router.put("/request-rejected/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    // const { req_email } = await Requests.find(_id);
+    const { email } = req.body;
+    console.log({ email, id });
 
-// router.post("/decline-request/:status", async (req, res) => {
-//   const { status } = req.params;
-//   console.log(status);
-//   const acceptedReq = await Requests.findOne({ email: email });
-//   if (acceptedReq) {
-//     const sendmailRes = await sendmail({
-//       email,
-//       textMessage: `Your Request Has Been ${status}`,
-//     });
-//     res.send("Mail Send Successfully");
-//   } else {
-//     console.log("User Are Not Found");
-//   }
-// });
+    const acceptedReq = await Requests.findByIdAndUpdate(
+      { _id: id },
+      { $set: { status: "rejected" } },
+      { new: true }
+    );
+    await acceptedReq.save();
+    const sendmailRes = await sendmail({
+      email: email,
+      textMessage: "Your Request Has Been Rejected.",
+    });
+    console.log({ sendmailRes });
+    res.send("Successfully Updated");
+  } catch (e) {
+    console.log(e);
+  }
+});
 
 router.get("/logout", (req, res) => {
   console.log("this is logout page");
@@ -517,9 +489,24 @@ router.all("/request-all/:id", async (req, res) => {
   console.log(records);
 });
 
-//route name request-alll
-//_id
-//const records = await Model.find({ 'ngo_id': _id });
-//records
+router.put("/changepwd/:id", async (req, res) => {
+  const { curpwd, newpwd } = req.body;
+  const { id } = req.params;
+  console.log({ id });
+
+  const ngoLogin = await Register.findById({ _id: id });
+  const pwd = await bcrypt.compare(curpwd, ngoLogin.password);
+  if (pwd) {
+    const password = await bcrypt.hash(newpwd, 12);
+
+    const updatedUser = await Register.updateOne(
+      { _id: id },
+      { $set: { password } },
+      { new: true }
+    );
+    console.log({ newpwd });
+    console.log({ updatedUser });
+  }
+});
 
 module.exports = router;

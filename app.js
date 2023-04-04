@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const Register = require("./models/regNgoSchema");
 const RegisterUser = require("./models/regUserSchema");
 const Volunteers = require("./models/volunteerSchema");
+const Requests = require("./models/reqSchema");
 
 // const validator = require("validator");
 
@@ -34,7 +35,7 @@ app.get("/regngos", async (req, res) => {
     const ngoData = await Register.find();
     res.send(ngoData);
   } catch (e) {
-    res.send(e);
+    cconsole.log(err);
   }
 });
 
@@ -43,7 +44,7 @@ app.get("/reguser", async (req, res) => {
     const userData = await RegisterUser.find();
     res.send(userData);
   } catch (e) {
-    res.send(e);
+    console.log(err);
   }
 });
 
@@ -57,20 +58,20 @@ app.get("/reguser/:id", async (req, res) => {
 
     res.status(201).json(userNgo);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log(err);
   }
 });
 
 app.get("/regngos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
 
     const userNgo = await Register.findById({ _id: id });
 
     res.status(201).json(userNgo);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.log(err);
   }
 });
 
@@ -109,7 +110,21 @@ app.get("/volunteer", async (req, res) => {
     const volData = await Volunteers.find();
     res.send(volData);
   } catch (e) {
-    res.send(e);
+    console.log(e);
+  }
+});
+
+app.get("/historydata/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log({ id });
+    // const query = Requests.where({ status: "accepted" });
+    const query1 = Requests.where({ status: "rejected" });
+    // const volData = await query.find({ ngo_id: id });
+    const volData = await query1.find({ ngo_id: id });
+    res.send(volData);
+  } catch (e) {
+    console.log(e);
   }
 });
 
