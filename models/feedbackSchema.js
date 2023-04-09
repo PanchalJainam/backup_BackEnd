@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 
 const feedbackSchema = mongoose.Schema({
-  name: {
+  user_name: {
     type: String,
     required: true,
   },

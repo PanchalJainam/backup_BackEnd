@@ -44,20 +44,20 @@ router.post("/token-data", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     let token;
-    const { email, password } = req.body;
+    const { email, password, user } = req.body;
+    console.log(user);
 
     if (!email || !password) {
       return res.status(400).json({ error: "Please Filled the data" });
     }
 
-    const ngoLogin = await Register.findOne({ email: email });
-    const userLogin = await RegisterUser.findOne({ email: email });
-
     // console.log(userLogin);
-    if (ngoLogin) {
+    if (!user) {
+      const ngoLogin = await Register.findOne({ email: email });
       const pwd = await bcrypt.compare(password, ngoLogin.password);
-
-      if (!pwd) {
+      if (!ngoLogin) {
+        res.status(413).json({ error: "Ngo Not Registerd" });
+      } else if (!pwd) {
         res.status(429).json({ error: "Password Error" });
       } else {
         token = await ngoLogin.generateAuthToken();
@@ -67,10 +67,12 @@ router.post("/login", async (req, res) => {
           .status(201)
           .json({ meassage: "Done Successfully", token, userData: ngoLogin });
       }
-    } else if (userLogin) {
+    } else {
+      const userLogin = await RegisterUser.findOne({ email: email });
       const pwd = await bcrypt.compare(password, userLogin.password);
-
-      if (!pwd) {
+      if (!userLogin) {
+        res.status(413).json({ error: "User Not Registerd" });
+      } else if (!pwd) {
         res.status(429).json({ error: "Password Error" });
       } else {
         token = await userLogin.generateAuthToken();
@@ -79,9 +81,10 @@ router.post("/login", async (req, res) => {
           .status(201)
           .json({ meassage: "Done Successfully", token, userData: userLogin });
       }
-    } else {
-      res.status(413).json({ error: "You are Not Registered" });
     }
+    // else {
+    //   res.status(413).json({ error: "You are Not Registered" });
+    // }
   } catch (err) {
     console.log(err);
   }
@@ -211,35 +214,39 @@ router.post(
 
     try {
       const userExists = await Register.findOne({ email: email });
+
       // console.log(userExists);
       if (userExists) {
-        return res.status(422).json({ error: "Email Already registered" });
-      } else {
-        const otp = randomNumberForOtp(1000, 9999);
-        console.log({ otp });
-        const register = new Register({
-          ngo_name,
-          email,
-          head_name,
-          address,
-          activity,
-          password,
-          contact_number,
-          document: filename,
-          otp,
-        });
-
-        console.log("user registered Process");
-        await register.save();
-
-        const sendmailRes = await sendmail({
-          email,
-          textMessage: `Your Otp ${otp}`,
-        });
-
-        res.status(201).json({ message: "user registered Successfully" });
-        console.log(req.body);
+        if (userExists.isVerified == false) {
+          await Register.deleteOne({ email: email, isVerified: false });
+        } else {
+          return res.status(422).json({ error: "Email Already registered" });
+        }
       }
+      const otp = randomNumberForOtp(1000, 9999);
+      console.log({ otp });
+      const register = new Register({
+        ngo_name,
+        email,
+        head_name,
+        address,
+        activity,
+        password,
+        contact_number,
+        document: filename,
+        otp,
+      });
+
+      console.log("user registered Process");
+      await register.save();
+
+      const sendmailRes = await sendmail({
+        email,
+        textMessage: `Your Otp ${otp}`,
+      });
+
+      res.status(201).json({ message: "user registered Successfully" });
+      console.log(req.body);
     } catch (err) {
       console.log(err);
     }
@@ -345,14 +352,16 @@ router.get("/logout", (req, res) => {
 });
 
 router.post("/feedback", async (req, res) => {
-  const { name, email: emailfeedback, message, rating } = req.body;
+  const { user_name, email: emailfeedback, message, rating } = req.body;
+  console.log(user_name, emailfeedback, message);
 
-  if (!name || !emailfeedback || !message) {
+  if (!user_name || !emailfeedback || !message) {
     return res.status(422).json({ error: "pls filled all the field" });
   }
   try {
+    console.log();
     const feedback = new Feedback({
-      name,
+      user_name,
       emailfeedback,
       message,
       rating,
@@ -407,7 +416,7 @@ router.post("/report", async (req, res) => {
     res.status(201).json({ message: "Reprt to Ngo Send Successfully" });
     console.log(req.body);
   } catch (e) {
-    res.send(e);
+    console.log(e);
   }
 });
 
@@ -459,15 +468,19 @@ router.post("/volunteer", async (req, res) => {
 
 router.post("/request", async (req, res) => {
   // const { ngo_id } = req.params;
-  const { user_name, email, message, contact, user_id, ngo_id } = req.body;
-  if (!user_name || !email || !contact || !message) {
+  const { user_name, email, message, contact_number, user_id, ngo_id } =
+    req.body;
+  console.log(user_name);
+  console.log(email);
+  console.log(contact_number);
+  if (!user_name || !email || !contact_number || !message) {
     return res.status(422).json({ error: "pls filled all the field" });
   }
   try {
     const request = new Requests({
       user_name,
       email,
-      contact,
+      contact_number,
       message,
       user_id,
       ngo_id,

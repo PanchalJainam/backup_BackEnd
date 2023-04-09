@@ -53,6 +53,7 @@ const regNgoSchema = mongoose.Schema({
   },
   isVerified: {
     type: Boolean,
+    default: false,
   },
   tokens: [
     {

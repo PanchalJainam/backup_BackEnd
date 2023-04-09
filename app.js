@@ -8,6 +8,8 @@ const Register = require("./models/regNgoSchema");
 const RegisterUser = require("./models/regUserSchema");
 const Volunteers = require("./models/volunteerSchema");
 const Requests = require("./models/reqSchema");
+const Feedback = require("./models/feedbackSchema");
+const { use } = require("./router/auth");
 
 // const validator = require("validator");
 
@@ -55,6 +57,7 @@ app.get("/reguser/:id", async (req, res) => {
     console.log(id);
 
     const userNgo = await RegisterUser.findById({ _id: id });
+    console.log({ userNgo });
 
     res.status(201).json(userNgo);
   } catch (err) {
@@ -68,7 +71,9 @@ app.get("/regngos/:id", async (req, res) => {
     // console.log(id);
 
     const userNgo = await Register.findById({ _id: id });
-
+    console.log("inside");
+    console.log({ user: userNgo });
+    console.log("outside");
     res.status(201).json(userNgo);
   } catch (err) {
     console.log(err);
@@ -109,6 +114,73 @@ app.get("/volunteer", async (req, res) => {
   try {
     const volData = await Volunteers.find();
     res.send(volData);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+app.get("/feedback", async (req, res) => {
+  try {
+    const feedbackData = await Feedback.find();
+    res.send(feedbackData);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+app.get("/feeduser/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+
+    const userNgo = await RegisterUser.findById({ _id: id });
+    const Ngo = await Register.findById({ _id: id });
+    console.log({ userNgo, Ngo });
+
+    if (userNgo) {
+      res.status(201).json(userNgo);
+    } else if (Ngo) {
+      res.status(201).json(Ngo);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.get("/request/:id", async (req, res) => {
+  try {
+    const { _id } = req.params.id;
+    console.log({ _id });
+    const userNgo = await Register.findById({ _id: id });
+    console.log("inside");
+    console.log({ user: userNgo });
+    console.log("outside");
+    res.status(201).json(userNgo);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.get("/request/:id", async (req, res) => {
+  try {
+    const { _id } = req.params.id;
+    console.log({ _id });
+    const userNgo = await Register.findById({ _id: id });
+    console.log("inside");
+    console.log({ user: userNgo });
+    console.log("outside");
+    res.status(201).json(userNgo);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.get("/user-request/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log({ id });
+    const userData = await Requests.findById({ user_id: id });
+    res.send(userData);
   } catch (e) {
     console.log(e);
   }
