@@ -58,7 +58,7 @@ router.post("/login", async (req, res) => {
       if (!ngoLogin) {
         res.status(413).json({ error: "Ngo Not Registerd" });
       } else if (!pwd) {
-        res.status(429).json({ error: "Password Error" });
+        res.status(429).json({ error: "Invalid Password " });
       } else {
         token = await ngoLogin.generateAuthToken();
         console.log("token is : " + token);
@@ -73,7 +73,7 @@ router.post("/login", async (req, res) => {
       if (!userLogin) {
         res.status(413).json({ error: "User Not Registerd" });
       } else if (!pwd) {
-        res.status(429).json({ error: "Password Error" });
+        res.status(429).json({ error: "Invalid Password " });
       } else {
         token = await userLogin.generateAuthToken();
         console.log("token is : " + token);
@@ -520,6 +520,66 @@ router.put("/changepwd/:id", async (req, res) => {
     );
     console.log({ newpwd });
     console.log({ updatedUser });
+  }
+});
+
+router.post("/send-mail-for-forgot-password", async (req, res) => {
+  const { email } = req.body;
+  const otp = randomNumberForOtp(1000, 9999);
+
+  console.log({ email });
+  const ngoLogin = await Register.findOne({ email: email });
+  const userLogin = await RegisterUser.findOne({ email: email });
+
+  if (ngoLogin) {
+    const resUser = await Register.updateOne(
+      { email: email },
+      { $set: { otp: otp.toString() } }
+    );
+    console.log({ resUser });
+
+    const sendmailRes = await sendmail({
+      email,
+      textMessage: `Your Otp ${otp}`,
+    });
+
+    res.status(200).send({ message: "email sent", user: "ngo" });
+  } else if (userLogin) {
+    const resUser = await RegisterUser.updateOne(
+      { email: email },
+      { $set: { otp: otp.toString() } }
+    );
+    console.log({ resUser });
+    const sendmailRes = await sendmail({
+      email,
+      textMessage: `Your Otp ${otp}`,
+    });
+    res.status(200).send({ message: "email sent", user: "user" });
+  } else {
+    res.status(400).send({ message: "email not found", user: "user" });
+  }
+});
+
+router.post("/change-password-with-otp", async (req, res) => {
+  const { password, otp, email } = req.body;
+  const ngoLogin = await Register.findOne({ email: email });
+  const userLogin = await RegisterUser.findOne({ email: email });
+  const encPassword = await bcrypt.hash(password, 12);
+  if (ngoLogin) {
+    const resUser = await Register.updateOne(
+      { email: email, otp: otp },
+      { $set: { password: encPassword } }
+    );
+    res.status(200).send({ message: "password changes" });
+  } else if (userLogin) {
+    const resUser = await RegisterUser.updateOne(
+      { email: email, otp: otp },
+      { $set: { password: encPassword } }
+    );
+    res.status(200).send({ message: "password changes" });
+  } else {
+    console.log("invalid email");
+    res.status(400).send({ message: "Something went wrong" });
   }
 });
 
