@@ -179,8 +179,9 @@ app.get("/user-request/:id", async (req, res) => {
   try {
     const { id } = req.params;
     console.log({ id });
-    const userData = await Requests.findById({ user_id: id });
-    res.send(userData);
+    const userData = await Requests.find({ user_id: id });
+    // res.send(userData);
+    res.status(201).json(userData);
   } catch (e) {
     console.log(e);
   }
@@ -191,9 +192,17 @@ app.get("/historydata/:id", async (req, res) => {
     const { id } = req.params;
     console.log({ id });
     // const query = Requests.where({ status: "accepted" });
-    const query1 = Requests.where({ status: "rejected" });
+    // const query1 = Requests.where($or[{ status: "rejected"},{status:"accepted" }]);
     // const volData = await query.find({ ngo_id: id });
-    const volData = await query1.find({ ngo_id: id });
+    const volData = await Requests.find({
+      $or: [
+        {
+          ngo_id: id,
+          status: "rejected",
+        },
+        { ngo_id: id, status: "accepted" },
+      ],
+    });
     res.send(volData);
   } catch (e) {
     console.log(e);

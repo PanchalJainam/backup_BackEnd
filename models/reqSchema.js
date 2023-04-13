@@ -23,8 +23,9 @@ const reqSchema = mongoose.Schema({
       }
     },
   },
-  contact: {
-    tyep: Number,
+  contact_number: {
+    type: Number,
+    required: true,
   },
   message: {
     type: String,
