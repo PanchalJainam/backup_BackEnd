@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
+const Admins = require("../models/regAdminSchema");
 
 const Register = require("../models/regNgoSchema");
 const Volunteers = require("../models/volunteerSchema");
@@ -82,14 +83,41 @@ router.post("/login", async (req, res) => {
           .json({ meassage: "Done Successfully", token, userData: userLogin });
       }
     }
-    // else {
-    //   res.status(413).json({ error: "You are Not Registered" });
-    // }
   } catch (err) {
     console.log(err);
   }
 });
 
+// ==================Admin Login======================
+
+router.post("/admin-login", async (req, res) => {
+  try {
+    let token;
+    const { email, password, user } = req.body;
+    console.log(user);
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Please Filled the data" });
+    }
+
+    // console.log(userLogin);
+    const adminLogin = await Admins.findOne({ email: email });
+    const pwd = await bcrypt.compare(password, adminLogin.password);
+    if (!adminLogin) {
+      res.status(413).json({ error: "Ngo Not Registerd" });
+    } else if (!pwd) {
+      res.status(429).json({ error: "Invalid Password " });
+    } else {
+      token = await adminLogin.generateAuthToken();
+      console.log("token is : " + token);
+      res
+        .status(201)
+        .json({ meassage: "Done Successfully", token, userData: adminLogin });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
 // router.post("/signin", async (req, res) => {
 //   const email = req.body.email;
 //   const password = req.body.password;
@@ -291,6 +319,49 @@ router.post("/user-registration", async (req, res) => {
       res.status(201).json({ message: "user registered Successfully" });
       console.log(req.body);
     }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// ======================Admin register=======================
+
+router.post("/admin-registration", async (req, res, next) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(422).json({ error: "pls filled all the field" });
+  }
+  try {
+    const userExists = await Admins.findOne({ email: email });
+
+    if (userExists) {
+      if (userExists.isVerified == false) {
+        await Register.deleteOne({ email: email, isVerified: false });
+      } else {
+        return res.status(422).json({ error: "Email Already registered" });
+      }
+    }
+    const otp = randomNumberForOtp(1000, 9999);
+    console.log({ otp });
+    const register = new Admins({
+      name,
+      email,
+      password,
+      otp,
+    });
+
+    console.log("admin registered Process");
+    await register.save();
+
+    const sendmailRes = await sendmail({
+      email,
+      subject: "OTP Verification",
+      textMessage: `Your Otp ${otp}`,
+    });
+
+    res.status(201).json({ message: "user registered Successfully" });
+    console.log(req.body);
   } catch (err) {
     console.log(err);
   }

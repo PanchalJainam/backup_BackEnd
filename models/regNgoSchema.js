@@ -43,6 +43,10 @@ const regNgoSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  // landmark: {
+  //   type: String,
+  //   required: true,
+  // },
   password: {
     type: String,
     required: true,

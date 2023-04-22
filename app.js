@@ -10,7 +10,13 @@ const Volunteers = require("./models/volunteerSchema");
 const Requests = require("./models/reqSchema");
 const Feedback = require("./models/feedbackSchema");
 const { use } = require("./router/auth");
-
+const user = require("./router/user.js");
+const feedback = require("./router/feedback.js");
+const report = require("./router/report.js");
+const fraud = require("./router/fraud.js");
+const ngo = require("./router/ngo.js");
+const volunteer = require("./router/volunteer.js");
+const request = require("./router/request");
 // const validator = require("validator");
 
 app.use(express.json());
@@ -27,6 +33,14 @@ require("./db/conn");
 
 app.use(require("./router/auth"));
 
+app.use("/users", user);
+app.use("/feedback", feedback);
+app.use("/reports", report);
+app.use("/fraud", fraud);
+app.use("/regngos", ngo);
+app.use("/volunteer", volunteer);
+// app.use("/request", request);
+
 app.get("/", (req, res) => {
   res.send("home page");
 });
@@ -37,7 +51,7 @@ app.get("/regngos", async (req, res) => {
     const ngoData = await Register.find();
     res.send(ngoData);
   } catch (e) {
-    cconsole.log(err);
+    cconsole.log(e);
   }
 });
 
@@ -46,7 +60,15 @@ app.get("/reguser", async (req, res) => {
     const userData = await RegisterUser.find();
     res.send(userData);
   } catch (e) {
-    console.log(err);
+    console.log(e);
+  }
+});
+app.get("/request", async (req, res) => {
+  try {
+    const userData = await Requests.find();
+    res.send(userData);
+  } catch (e) {
+    console.log(e);
   }
 });
 
