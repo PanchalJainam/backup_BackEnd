@@ -31,11 +31,14 @@ router.post("/token-data", async (req, res) => {
   const user_id = verifyToken(token);
   const ngoLogin = await Register.findOne({ _id: user_id });
   const userLogin = await RegisterUser.findOne({ _id: user_id });
+  const adminLogin = await Admins.findOne({ _id: user_id });
   console.log({ ngoLogin, userLogin });
   if (ngoLogin) {
     res.status(200).send({ userData: ngoLogin });
   } else if (userLogin) {
     res.status(200).send({ userData: userLogin });
+  } else if (adminLogin) {
+    res.status(200).send({ userData: adminLogin });
   } else {
     res.status(400).send({ userData: null });
   }
@@ -93,8 +96,8 @@ router.post("/login", async (req, res) => {
 router.post("/admin-login", async (req, res) => {
   try {
     let token;
-    const { email, password, user } = req.body;
-    console.log(user);
+    const { email, password } = req.body;
+    // console.log(user);
 
     if (!email || !password) {
       return res.status(400).json({ error: "Please Filled the data" });
@@ -175,7 +178,7 @@ router.post("/verify-otp", async (req, res) => {
   console.log({ email, vOtp, body: req.body });
   const ngoLogin = await Register.findOne({ email: email });
   const userLogin = await RegisterUser.findOne({ email: email });
-  console.log({ ngoLogin, userLogin });
+  console.log({ ngoLogin, userLogin, adminLogin });
   if (userLogin) {
     const otp = userLogin.otp;
     if (vOtp.toString() === otp.toString()) {
@@ -202,6 +205,30 @@ router.post("/verify-otp", async (req, res) => {
         { $set: { isVerified: true } }
       );
       console.log({ resUser });
+      res
+        .status(200)
+        .send({ message: "User Verified Successfully", success: true });
+    } else {
+      res.status(200).send({ message: "Otp invalid" });
+    }
+  }
+});
+
+router.post("/admin/verify-otp", async (req, res) => {
+  const { email, vOtp } = req.body;
+  console.log({ email, vOtp, body: req.body });
+  const adminLogin = await Admins.findOne({ email: email });
+  console.log({ adminLogin });
+  if (adminLogin) {
+    const otp = adminLogin.otp;
+    if (vOtp.toString() === otp.toString()) {
+      // isVerified
+      console.log("same");
+      const resAdmin = await Admins.updateOne(
+        { _id: adminLogin.id },
+        { $set: { isVerified: true } }
+      );
+      console.log({ resAdmin });
       res
         .status(200)
         .send({ message: "User Verified Successfully", success: true });
@@ -383,6 +410,7 @@ router.put("/request-accept/:id", async (req, res) => {
     await acceptedReq.save();
     const sendmailRes = await sendmail({
       email: email,
+      subject: "Request Status Verification",
       textMessage: "Your Request Has Been Accepted :-)",
     });
     console.log({ sendmailRes });
@@ -407,6 +435,7 @@ router.put("/request-rejected/:id", async (req, res) => {
     await acceptedReq.save();
     const sendmailRes = await sendmail({
       email: email,
+      subject: "Request Status Verification",
       textMessage: "Your Request Has Been Rejected.",
     });
     console.log({ sendmailRes });

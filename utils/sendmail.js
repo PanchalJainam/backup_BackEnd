@@ -8,7 +8,7 @@ const EMAIL_CLIENT_ID =
 const EMAIL_CLIENT_SECRET = "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";
 const EMAIL_REDIREACT_URL = "https://developers.google.com/oauthplayground";
 const EMAIL_REFRESH_TOKEN =
-  "1//04L0JDHJlYAupCgYIARAAGAQSNwF-L9IrlieTx3kQbxIR7uqgrT82W4rx5ptnvo6tiCGijm8gEsn-IbxFYHkisIB6guMpDFKTXIc";
+  "1//04tVuTHfcb8r_CgYIARAAGAQSNwF-L9IrBpfBajJ6uRKKSUmTa98pxkIgzIQcyXMx23ihUxW1K1gIfwI5Itey1ii33B7sDA6eAnM";
 const EMAIL = "mevadajinil@gmail.com";
 
 const sendmail = async ({

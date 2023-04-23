@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // const takeData = () => {
 //   let dateVal = new Date();
@@ -54,6 +55,17 @@ regAdminSchema.pre("save", async function (next) {
   }
   next();
 });
+
+regAdminSchema.methods.generateAuthToken = async function () {
+  try {
+    let token = jwt.sign({ _id: this._id }, "hello");
+    this.tokens = this.tokens.concat({ token: token });
+    await this.save();
+    return token;
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 const Admins = mongoose.model("Admin", regAdminSchema);
 module.exports = Admins;

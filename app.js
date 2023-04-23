@@ -39,7 +39,7 @@ app.use("/reports", report);
 app.use("/fraud", fraud);
 app.use("/regngos", ngo);
 app.use("/volunteer", volunteer);
-// app.use("/request", request);
+app.use("/request", request);
 
 app.get("/", (req, res) => {
   res.send("home page");

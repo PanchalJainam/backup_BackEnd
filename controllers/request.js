@@ -12,7 +12,7 @@ const deleteRequest = async (req, res) => {
   try {
     const _id = req.params.id;
     await Requests.findByIdAndRemove(_id);
-    res.send("User deleted Successfully");
+    res.status(201).send("User deleted Successfully");
   } catch (error) {
     res.status(409).send(error);
   }
